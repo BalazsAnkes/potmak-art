@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andrea Potmak</title>
+    <style>
+        :root {
+            --bg-color: #fcfcfc;
+            --text-color: #1a1a1a;
+            --muted-text: #707070;
+            --border-color: #e5e5e5;
+            --max-width: 1200px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            letter-spacing: 0.03em;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        /* Header & Navigation */
+        header {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            position: sticky;
+            top: 0;
+            background-color: rgba(252, 252, 252, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 900;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        nav a {
+            font-size: 0.9rem;
+            text-decoration: none;
+            color: var(--muted-text);
+            margin-left: 2rem;
+            transition: color 0.2s ease;
+        }
+
+        nav a:hover, nav a.active {
+            color: var(--text-color);
+        }
+
+        /* Sections Layout */
+        main {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 2rem 5rem 2rem;
+        }
+
+        section {
+            padding-top: 4rem;
+            margin-bottom: 6rem;
+        }
+
+        .section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--muted-text);
+            margin-bottom: 3rem;
+            font-weight: 500;
+        }
+
+        /* Gallery Grid */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 4rem 3rem;
+        }
+
+        .artwork {
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .image-wrapper {
+            background-color: #f5f5f5;
+            overflow: hidden;
+            margin-bottom: 1.25rem;
+            position: relative;
+            aspect-ratio: 4 / 5; 
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.4s ease, transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+            filter: grayscale(10%);
+        }
+
+        .artwork:hover .image-wrapper img {
+            transform: scale(1.02);
+            filter: grayscale(0%);
+        }
+
+        .artwork-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .title {
+            font-size: 0.95rem;
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        .details {
+            font-size: 0.85rem;
+            color: var(--muted-text);
+        }
+
+        /* About Section */
+        .about-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: start;
+        }
+
+        .about-text {
+            font-size: 1.05rem;
+            font-weight: 300;
+            color: #333;
+        }
+
+        .about-text p {
+            margin-bottom: 1.5rem;
+        }
+
+        .bio-image {
+            width: 100%;
+            aspect-ratio: 3 / 4;
+            object-fit: cover;
+            background-color: #f5f5f5;
+            filter: grayscale(100%);
+        }
+
+        /* Contact Section */
+        .contact-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+        }
+
+        .contact-details h3 {
+            font-size: 1.5rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+        }
+
+        .contact-details p {
+            color: var(--muted-text);
+            margin-bottom: 2rem;
+            max-width: 400px;
+        }
+
+        .contact-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .contact-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1rem;
+            width: fit-content;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s ease;
+        }
+
+        .contact-links a:hover {
+            border-color: var(--text-color);
+        }
+
+        /* --- Glassmorphism Lightbox Modal --- */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.4); 
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .lightbox.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .lightbox-content {
+            max-width: 90vw;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            transform: scale(0.95);
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .lightbox.active .lightbox-content {
+            transform: scale(1);
+        }
+
+        .lightbox-img {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        .lightbox-caption {
+            margin-top: 1.5rem;
+            text-align: center;
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: -3rem;
+            right: 0;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            font-weight: 200;
+            color: var(--text-color);
+            cursor: pointer;
+            padding: 0.5rem;
+            line-height: 1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Footer */
+        footer {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--muted-text);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1.5rem;
+                padding: 2rem 1.5rem;
+            }
+            nav a {
+                margin-left: 0;
+                margin-right: 1.5rem;
+            }
+            main {
+                padding: 0 1.5rem 3rem 1.5rem;
+            }
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+            .about-container, .contact-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            .bio-image {
+                order: -1; /* Image first on mobile */
+            }
+            footer {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 2rem 1.5rem;
+            }
+            .lightbox-close {
+                right: 1rem;
+                top: -3.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="#works" class="logo">Andrea Potmak</a>
+        <nav id="main-nav">
+            <a href="#works" class="nav-link active">Selected Works</a>
+            <a href="#about" class="nav-link">About</a>
+            <a href="#contact" class="nav-link">Contact</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Gallery Section -->
+        <section id="works">
+            <div class="gallery-grid">
+                
+                <div class="artwork" onclick="openLightbox(this)">
+                    <div class="image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?q=80&w=1200&auto=format&fit=crop" alt="Serenade in Ochre">
+                    </div>
+                    <div class="artwork-meta">
+                        <span class="title">Serenade in Ochre</span>
+                        <span class="details">Oil on Canvas, 2025 — 120 × 150 cm</span>
+                    </div>
+                </div>
+
+                <div class="artwork" onclick="openLightbox(this)">
+                    <div class="image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1580136579312-94651dfd596d?q=80&w=1200&auto=format&fit=crop" alt="The Silent Weight of Light">
+                    </div>
+                    <div class="artwork-meta">
+                        <span class="title">The Silent Weight of Light</span>
+                        <span class="details">Acrylic and Plaster, 2026 — 100 × 100 cm</span>
+                    </div>
+                </div>
+
+                <div class="artwork" onclick="openLightbox(this)">
+                    <div class="image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1541701494587-cb58502866ab?q=80&w=1200&auto=format&fit=crop" alt="Forms of Absence no. 4">
+                    </div>
+                    <div class="artwork-meta">
+                        <span class="title">Forms of Absence no. 4</span>
+                        <span class="details">Mixed Media on Linen, 2024 — 80 × 110 cm</span>
+                    </div>
+                </div>
+
+                <div class="artwork" onclick="openLightbox(this)">
+                    <div class="image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?q=80&w=1200&auto=format&fit=crop" alt="Study of a Horizon">
+                    </div>
+                    <div class="artwork-meta">
+                        <span class="title">Study of a Horizon</span>
+                        <span class="details">Oil on Wood Panel, 2025 — 60 × 60 cm</span>
+                    </div>
+                </div>
+
+                <div class="artwork" onclick="openLightbox(this)">
+                    <div class="image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1543857778-c4a1a3e0b2eb?q=80&w=1200&auto=format&fit=crop" alt="Untitled (Dawn)">
+                    </div>
+                    <div class="artwork-meta">
+                        <span class="title">Untitled (Dawn)</span>
+                        <span class="details">Watercolor on Paper, 2025 — 40 × 50 cm</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about">
+            <h2 class="section-title">About the Artist</h2>
+            <div class="about-container">
+                <div class="about-text">
+                    <p>Andrea Potmak is a contemporary visual artist working primarily with raw oils, plaster textures, and mixed media. Born in Eastern Europe and currently working from her studio in Budapest, her landscapes and non-objective forms investigate structural stillness and muted organic tones.</p>
+                    <p>Her process is highly tactile, often layering materials and stripping them back repeatedly over months to unveil raw depths beneath the surface plane. Andrea’s work is held in private collections throughout Europe.</p>
+                </div>
+                <div>
+                    <!-- Artist Portrait Placeholder -->
+                    <img src="https://drpotmak.hu/wp-content/uploads/2025/08/DSC00010-1-2048x1365.jpg" alt="Andrea Potmak" class="bio-image">
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact">
+            <h2 class="section-title">Contact</h2>
+            <div class="contact-container">
+                <div class="contact-details">
+                    <h3>Acquisitions & Studio Visits</h3>
+                    <p>For piece availability, custom commission frameworks, or to arrange an appointment at the Budapest studio, reach out directly or use the portal.</p>
+                    
+                    <div class="contact-links">
+                        <a href="mailto:studio@andreapotmak.com">studio@andreapotmak.com</a>
+                        <a href="tel:+36301234567">+36 (30) 123 4567</a>
+                        <a href="https://instagram.com" target="_blank" rel="noopener">Instagram</a>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- Lightbox Structure -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox(event)">
+        <div class="lightbox-content">
+            <button class="lightbox-close" onclick="closeLightbox(event)">&times;</button>
+            <img id="lightbox-img" class="lightbox-img" src="" alt="">
+            <div id="lightbox-caption" class="lightbox-caption"></div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Andrea Potmak. All rights reserved.</p>
+        <p>Based in Budapest, Hungary</p>
+    </footer>
+
+    <script>
+        // --- Lightbox Functionality ---
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxCaption = document.getElementById('lightbox-caption');
+
+        function openLightbox(element) {
+            const imgSrc = element.querySelector('img').src;
+            const title = element.querySelector('.title').innerHTML;
+            const details = element.querySelector('.details').innerHTML;
+
+            lightboxImg.src = imgSrc;
+            lightboxImg.alt = title;
+            lightboxCaption.innerHTML = `
+                <div class="title" style="font-size: 1.1rem; margin-bottom: 0.25rem;">${title}</div>
+                <div class="details">${details}</div>
+            `;
+
+            lightbox.classList.add('active');
+            document.body.classList.add('modal-open');
+        }
+
+        function closeLightbox(event) {
+            if (event.target === lightbox || event.target.classList.contains('lightbox-close') || event.target.closest('.lightbox-close')) {
+                lightbox.classList.remove('active');
+                document.body.classList.remove('modal-open');
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+                lightbox.classList.remove('active');
+                document.body.classList.remove('modal-open');
+            }
+        });
+
+        // --- Active Navigation Highlight on Scroll ---
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        window.addEventListener('scroll', () => {
+            let currentSectionId = 'works';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                // Offset calculation to trigger changing nav item slightly early
+                if (window.scrollY >= sectionTop - 160) {
+                    currentSectionId = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${currentSectionId}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
